@@ -26,7 +26,8 @@ def create_qwen_model() -> ChatOllama:
         base_url=base_url,
         model=model,
         temperature=0.7,
-        num_predict=1200,
+        num_predict=int(os.getenv("OLLAMA_NUM_PREDICT", "8192")),
+        num_ctx=int(os.getenv("OLLAMA_NUM_CTX", "32768")),
         client_kwargs={"headers": headers} if headers else {},
         sync_client_kwargs={"headers": headers} if headers else {},
     )
