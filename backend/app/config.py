@@ -4,9 +4,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
+# backend/ (holds app/, scripts/, data/ and .env) and the repository root above it.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = PROJECT_ROOT.parent
+
+# Read backend/.env no matter which folder the server is started from.
+load_dotenv(PROJECT_ROOT / ".env")
 
 
 @dataclass(frozen=True)
@@ -24,6 +27,7 @@ class Settings:
     request_timeout: float
     data_dir: Path
     workers: int
+    max_tokens: int
 
     @property
     def db_path(self) -> Path:
@@ -33,12 +37,20 @@ class Settings:
     def uploads_dir(self) -> Path:
         return self.data_dir / "uploads"
 
+    def data_path(self, stored: str) -> Path:
+        """Turns a path saved in the database (relative to data/) into a real file path.
+
+        Relative paths keep working when the hub folder moves, e.g. onto a DGX Spark.
+        """
+        path = Path(stored)
+        return path if path.is_absolute() else self.data_dir / path
+
 
 def _load_settings() -> Settings:
     text = ModelEndpoint(
         base_url=os.getenv("TEXT_BASE_URL", "http://localhost:11434/v1"),
         api_key=os.getenv("TEXT_API_KEY", "ollama"),
-        model=os.getenv("TEXT_MODEL", "qwen3:4b"),
+        model=os.getenv("TEXT_MODEL", "qwen3:4b-instruct"),
     )
     # The vision endpoint falls back to the text endpoint when not set separately.
     vision = ModelEndpoint(
@@ -57,6 +69,7 @@ def _load_settings() -> Settings:
         request_timeout=float(os.getenv("REQUEST_TIMEOUT", "300")),
         data_dir=data_dir,
         workers=max(1, int(os.getenv("WORKERS", "1"))),
+        max_tokens=int(os.getenv("MAX_TOKENS", "1500")),
     )
 
 

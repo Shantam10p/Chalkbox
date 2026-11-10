@@ -8,11 +8,11 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api import router as api_router
-from app.config import PROJECT_ROOT, settings
+from app.config import REPO_ROOT, settings
 from app.db import init_db
 
 # The React build (frontend/dist) when it exists, otherwise the simple placeholder page.
-REACT_BUILD = PROJECT_ROOT / "frontend" / "dist"
+REACT_BUILD = REPO_ROOT / "frontend" / "dist"
 WEB_DIR = REACT_BUILD if (REACT_BUILD / "index.html").exists() else Path(__file__).parent / "static"
 
 

@@ -160,7 +160,7 @@ def ai_grade(state: CheckState) -> dict:
         "Accept answers that show the right idea even with spelling mistakes or simple words.",
         f"{details}\n\nReturn JSON: {{\"grades\": {{\"<question number>\": "
         "{\"correct\": true or false, \"reason\": \"<one short sentence>\"}}}}",
-        temperature=0.0,
+        temperature=0.2,
     )
 
     grades = reply.get("grades", {}) if isinstance(reply, dict) else {}
@@ -213,7 +213,7 @@ def diagnose(state: CheckState) -> dict:
         "Return JSON: {\"diagnoses\": {\"<question number>\": {\"misconception\": \"<one type "
         "id from the list>\", \"explanation\": \"<one short sentence to the student about "
         "this question>\"}}, \"feedback\": \"<2-4 short, encouraging sentences to the student>\"}",
-        temperature=0.0,
+        temperature=0.2,
     )
 
     diagnoses = reply.get("diagnoses", {}) if isinstance(reply, dict) else {}

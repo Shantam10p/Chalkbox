@@ -46,13 +46,16 @@ def worksheet_summary(worksheet_id: int) -> dict | None:
     for stats in per_question.values():
         stats["accuracy"] = round(stats["correct"] / stats["attempts"], 2) if stats["attempts"] else None
 
+    # count = how many students made the mistake (one student repeating it counts once);
+    # times = how often it appeared in total.
     top_mistakes = sorted(
         (
-            {"id": key, "description": descriptions.get(key, key), "count": len(names),
-             "share": round(len(names) / len(subs), 2) if subs else 0, "students": sorted(set(names))}
+            {"id": key, "description": descriptions.get(key, key), "count": len(set(names)),
+             "times": len(names), "share": round(len(set(names)) / len(subs), 2) if subs else 0,
+             "students": sorted(set(names))}
             for key, names in mistakes.items()
         ),
-        key=lambda m: m["count"],
+        key=lambda m: (m["count"], m["times"]),
         reverse=True,
     )
 
@@ -75,7 +78,7 @@ def recent_mistakes(class_id: int, limit: int = 2) -> list[str]:
         return []
     summary = worksheet_summary(worksheet_id)
     return [
-        f"{m['description']} ({m['count']} students)"
+        f"{m['description']} ({m['count']} student{'s' if m['count'] != 1 else ''})"
         for m in summary["top_mistakes"][:limit]
         if m["id"] != "other"
     ]

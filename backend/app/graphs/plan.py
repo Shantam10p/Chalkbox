@@ -71,6 +71,7 @@ def write_lesson(state: PlanState) -> dict:
         ' "practice_alone": "<one sentence telling students what to do on the worksheet>",\n'
         ' "teacher_notes": {"materials": ["..."], "local_language_words": ["..."], "tips": ["..."]}}',
         temperature=0.4,
+        max_tokens=2000,
     )
     if not isinstance(lesson, dict):
         lesson = {}
@@ -102,6 +103,7 @@ def write_worksheet(state: PlanState) -> dict:
         'Return JSON: {"questions": [{"number": "1", "text": "...", "type": "...", "answer": "...", '
         '"options": [...], "rubric": "..."}], "misconceptions": {"mistake_id": "description"}}',
         temperature=0.3,
+        max_tokens=2000,
     )
     if not isinstance(reply, dict):
         reply = {}

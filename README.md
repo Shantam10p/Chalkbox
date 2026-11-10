@@ -5,23 +5,32 @@ DGX Spark in production) runs AI workflows that teachers use from their phones o
 school's local Wi-Fi: lesson planning, reading and grading handwritten worksheets,
 per-student feedback, personalized practice, and parent reports.
 
+```
+backend/    FastAPI hub, AI workflows, database (Python)
+frontend/   teacher app (React)
+```
+
 ## Setup (Windows)
 
 ```powershell
+cd backend
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
 copy .env.example .env
 ```
 
-Pick a model preset in `.env`:
+Pick a model preset in `backend\.env`:
 
-- **A. Ollama (offline, default):** `ollama pull qwen2.5vl:3b` and `ollama pull qwen3:4b`
+- **A. Ollama (offline, default):** `ollama pull qwen2.5vl:3b` and `ollama pull qwen3:4b-instruct` (use instruct models: thinking models are far too slow)
 - **B. NVIDIA API catalog:** add your `nvapi-...` key and model ids from build.nvidia.com
 - **C. DGX Spark:** point the URLs at the vLLM / NIM server on the Spark, and raise `WORKERS`
 
 ## Run
 
+Every backend command runs from the `backend` folder:
+
 ```powershell
+cd backend
 .venv\Scripts\python -m scripts.check_models     # both models answer?
 .venv\Scripts\python -m scripts.seed --reset     # demo class: Grade 4A, Dave, 30 students
 .venv\Scripts\python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
@@ -43,7 +52,7 @@ npm run build    # production: writes frontend/dist, which the hub serves at :80
 After `npm run build`, restart the hub and the whole app (UI + API) runs from one
 address, so phones on the school Wi-Fi only need `http://<hub-IP>:8000`.
 
-Test scripts (server running, data seeded):
+Test scripts (from `backend`, server running, data seeded):
 
 ```powershell
 .venv\Scripts\python -m scripts.try_check        # Check graph only, no server needed
@@ -100,7 +109,8 @@ AI work runs in background jobs (`WORKERS` at a time). Every item has a `status`
 ## Layout
 
 ```
-app/
+backend/
+ app/
   main.py           FastAPI hub + serves the web app
   config.py         settings from .env (model endpoints, data folder, workers)
   llm.py            one OpenAI-compatible client for every model
@@ -114,7 +124,9 @@ app/
   api/              API routes
   graphs/           check.py, plan.py, followup.py (LangGraph)
   static/           placeholder page (used until the React app is built)
+ scripts/           check_models, seed, try_check, try_api, samples
+ data/              local database + uploaded photos (gitignored)
+ requirements.txt   Python dependencies
+ .env.example       model settings template (copy to .env)
 frontend/           React teacher app (Vite); src/api.js wraps every API call
-scripts/            check_models, seed, try_check, try_api, samples
-data/               local database + uploaded photos (gitignored)
 ```

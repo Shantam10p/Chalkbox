@@ -51,7 +51,8 @@ def _save_photo(data: bytes, filename: str) -> str:
     image.thumbnail((MAX_PHOTO_SIDE, MAX_PHOTO_SIDE))
     path = settings.uploads_dir / f"{uuid.uuid4().hex}.jpg"
     image.save(path, "JPEG", quality=90)
-    return str(path)
+    # Stored relative to data/ so the database still works if the hub folder moves.
+    return path.relative_to(settings.data_dir).as_posix()
 
 
 @router.post("/worksheets/{worksheet_id}/submissions", status_code=202)

@@ -19,9 +19,14 @@ _THINK_BLOCK = re.compile(r"<think>.*?</think>", re.DOTALL)
 _CODE_FENCE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
 
+class ModelOutputError(RuntimeError):
+    """The model answered, but not with usable text."""
+
+
 @lru_cache(maxsize=4)
 def _client(base_url: str, api_key: str) -> OpenAI:
-    return OpenAI(base_url=base_url, api_key=api_key, timeout=settings.request_timeout)
+    # One retry only: a timed-out call on a slow machine would just time out again.
+    return OpenAI(base_url=base_url, api_key=api_key, timeout=settings.request_timeout, max_retries=1)
 
 
 def _clean(text: str) -> str:
@@ -30,19 +35,31 @@ def _clean(text: str) -> str:
 
 
 def _no_think(model: str, prompt: str) -> str:
-    # Qwen3 models honour "/no_think" as a soft switch that skips the reasoning phase.
-    if settings.disable_thinking and "qwen3" in model.lower():
+    # Hybrid Qwen3 models honour "/no_think"; instruct models never think, so skip it there.
+    name = model.lower()
+    if settings.disable_thinking and "qwen3" in name and "instruct" not in name:
         return f"{prompt}\n/no_think"
     return prompt
 
 
-def _chat(endpoint: ModelEndpoint, messages: list[dict], temperature: float) -> str:
+def _chat(endpoint: ModelEndpoint, messages: list[dict], temperature: float,
+          max_tokens: int | None = None) -> str:
     response = _client(endpoint.base_url, endpoint.api_key).chat.completions.create(
         model=endpoint.model,
         messages=messages,
         temperature=temperature,
+        # A cap stops a model from rambling (or "thinking") until the request times out.
+        max_tokens=max_tokens or settings.max_tokens,
     )
-    return _clean(response.choices[0].message.content)
+    choice = response.choices[0]
+    text = _clean(choice.message.content)
+    if not text:
+        hint = (
+            " It used every token on hidden reasoning: use a non-thinking (instruct) model "
+            "such as qwen3:4b-instruct." if choice.finish_reason == "length" else ""
+        )
+        raise ModelOutputError(f"{endpoint.model} returned an empty answer.{hint}")
+    return text
 
 
 def parse_json(text: str):
@@ -63,19 +80,20 @@ def parse_json(text: str):
     raise ValueError(f"Model did not return valid JSON:\n{text[:500]}")
 
 
-def ask_text(system: str, user: str, temperature: float = 0.4) -> str:
+def ask_text(system: str, user: str, temperature: float = 0.4, max_tokens: int | None = None) -> str:
     endpoint = settings.text
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": _no_think(endpoint.model, user)},
     ]
-    return _chat(endpoint, messages, temperature)
+    return _chat(endpoint, messages, temperature, max_tokens)
 
 
-def ask_json(system: str, user: str, temperature: float = 0.2, retries: int = 1):
+def ask_json(system: str, user: str, temperature: float = 0.2, retries: int = 1,
+             max_tokens: int | None = None):
     """Asks for JSON and retries when a small model returns something unparseable."""
     for attempt in range(retries + 1):
-        reply = ask_text(system + "\nRespond with JSON only.", user, temperature)
+        reply = ask_text(system + "\nRespond with JSON only.", user, temperature, max_tokens)
         try:
             return parse_json(reply)
         except ValueError:
@@ -89,7 +107,7 @@ def _image_data_uri(image_path: Path) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
-def ask_vision_json(system: str, user: str, image_path: Path, temperature: float = 0.0, retries: int = 1):
+def ask_vision_json(system: str, user: str, image_path: Path, temperature: float = 0.1, retries: int = 1):
     endpoint = settings.vision
     messages = [
         {"role": "system", "content": system + "\nRespond with JSON only."},

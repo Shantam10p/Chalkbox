@@ -44,7 +44,7 @@ def run_check(submission_id: int, resume: dict | None = None) -> None:
         if resume is None:
             output = check_graph().invoke(
                 {
-                    "image_path": submission["image_path"],
+                    "image_path": str(settings.data_path(submission["image_path"])),
                     "questions": worksheet["questions"],
                     "misconceptions": worksheet["misconceptions"],
                 },

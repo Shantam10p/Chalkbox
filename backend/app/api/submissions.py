@@ -1,10 +1,9 @@
-from pathlib import Path
-
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from app import jobs, repo
 from app.api.common import found, require_status
+from app.config import settings
 from app.schemas import ApproveSubmissionIn, ReviewIn
 
 router = APIRouter(tags=["submissions"])
@@ -18,7 +17,10 @@ def get_submission(submission_id: int):
 @router.get("/submissions/{submission_id}/image")
 def submission_image(submission_id: int):
     submission = found(repo.get_submission(submission_id), "Submission")
-    return FileResponse(Path(submission["image_path"]), media_type="image/jpeg")
+    path = settings.data_path(submission["image_path"])
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Photo file is missing")
+    return FileResponse(path, media_type="image/jpeg")
 
 
 @router.post("/submissions/{submission_id}/review", status_code=202)
