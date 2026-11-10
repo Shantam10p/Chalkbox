@@ -1,95 +1,69 @@
-import { useEffect, useState } from 'react'
-import { NavLink, Route, Routes } from 'react-router-dom'
-import { api } from './api.js'
+import { Outlet, Route, Routes } from 'react-router-dom'
+import { ClassProvider } from './components/ClassContext.jsx'
+import TabBar from './components/TabBar.jsx'
+import { ToastProvider } from './components/Toast.jsx'
+import { AppBar, EmptyState, Page } from './components/ui.jsx'
+import CheckHome from './screens/CheckHome.jsx'
+import ClassHome from './screens/ClassHome.jsx'
+import Home from './screens/Home.jsx'
+import LessonDetail from './screens/LessonDetail.jsx'
+import PlanList from './screens/PlanList.jsx'
+import PlanNew from './screens/PlanNew.jsx'
+import PracticeList from './screens/PracticeList.jsx'
+import { PrintPractice, PrintReports, PrintWorksheet } from './screens/Print.jsx'
+import Reports from './screens/Reports.jsx'
+import StudentProfile from './screens/StudentProfile.jsx'
+import SubmissionDetail from './screens/SubmissionDetail.jsx'
+import WorksheetCheck from './screens/WorksheetCheck.jsx'
+import WorksheetSummary from './screens/WorksheetSummary.jsx'
 
-// Starter shell: navigation + a home screen that proves the app is talking to the hub.
-// Each placeholder route below becomes a real screen next.
+function Shell() {
+  return (
+    <div className="shell">
+      <Outlet />
+      <TabBar />
+    </div>
+  )
+}
 
-function Home() {
-  const [status, setStatus] = useState(null)
-  const [classes, setClasses] = useState([])
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    Promise.all([api.status(), api.classes()])
-      .then(([s, c]) => {
-        setStatus(s)
-        setClasses(c)
-      })
-      .catch((e) => setError(e.message))
-  }, [])
-
-  if (error) return <p className="error">Can't reach the ChalkBox hub: {error}</p>
-  if (!status) return <p className="muted">Connecting to the hub…</p>
-
+function NotFound() {
   return (
     <>
-      <section className="card">
-        <h2>Hub</h2>
-        <p className="ok">● Running offline</p>
-        <p className="muted">
-          Text model <code>{status.text_model.model}</code> · Vision model{' '}
-          <code>{status.vision_model.model}</code> · {status.workers} worker(s)
-        </p>
-      </section>
-      <section className="card">
-        <h2>Classes</h2>
-        {classes.length === 0 && <p className="muted">No classes yet. Run the seed script.</p>}
-        <ul className="list">
-          {classes.map((c) => (
-            <li key={c.id}>
-              <strong>{c.name}</strong>
-              <span className="muted">
-                {' '}· Grade {c.grade} · {c.teacher} · {c.student_count} students
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <AppBar title="Not found" back="/" />
+      <Page>
+        <div className="card">
+          <EmptyState icon="alert" title="This page doesn't exist" />
+        </div>
+      </Page>
     </>
   )
 }
 
-function Placeholder({ title }) {
-  return (
-    <section className="card">
-      <h2>{title}</h2>
-      <p className="muted">Coming next.</p>
-    </section>
-  )
-}
-
-const NAV = [
-  { to: '/', label: 'Home' },
-  { to: '/plan', label: 'Plan' },
-  { to: '/check', label: 'Check' },
-  { to: '/class', label: 'Class' },
-  { to: '/reports', label: 'Reports' },
-]
-
 export default function App() {
   return (
-    <div className="app">
-      <header className="topbar">
-        <h1>ChalkBox</h1>
-        <nav>
-          {NAV.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.to === '/'}>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-      </header>
-      <main>
+    <ToastProvider>
+      <ClassProvider>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/plan" element={<Placeholder title="Plan a lesson" />} />
-          <Route path="/check" element={<Placeholder title="Check worksheets" />} />
-          <Route path="/class" element={<Placeholder title="Class view" />} />
-          <Route path="/reports" element={<Placeholder title="Parent reports" />} />
-          <Route path="*" element={<Placeholder title="Page not found" />} />
+          <Route element={<Shell />}>
+            <Route index element={<Home />} />
+            <Route path="plan" element={<PlanList />} />
+            <Route path="plan/new" element={<PlanNew />} />
+            <Route path="plan/:lessonId" element={<LessonDetail />} />
+            <Route path="check" element={<CheckHome />} />
+            <Route path="check/:worksheetId" element={<WorksheetCheck />} />
+            <Route path="submissions/:submissionId" element={<SubmissionDetail />} />
+            <Route path="class" element={<ClassHome />} />
+            <Route path="class/worksheets/:worksheetId" element={<WorksheetSummary />} />
+            <Route path="class/worksheets/:worksheetId/practice" element={<PracticeList />} />
+            <Route path="class/students/:studentId" element={<StudentProfile />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+          <Route path="print/worksheet/:worksheetId" element={<PrintWorksheet />} />
+          <Route path="print/practice/:worksheetId" element={<PrintPractice />} />
+          <Route path="print/reports" element={<PrintReports />} />
         </Routes>
-      </main>
-    </div>
+      </ClassProvider>
+    </ToastProvider>
   )
 }

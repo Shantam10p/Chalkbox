@@ -48,6 +48,7 @@ export const api = {
   lesson: (id) => get(`/lessons/${id}`),
   createLesson: (body) => post('/lessons', body),
   approveLesson: (id, edits = {}) => post(`/lessons/${id}/approve`, edits),
+  retryLesson: (id) => post(`/lessons/${id}/retry`),
 
   // Follow-up: practice sheets and parent reports
   practiceSheets: (worksheetId) => get(`/worksheets/${worksheetId}/practice`),
