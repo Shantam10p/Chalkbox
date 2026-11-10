@@ -31,6 +31,18 @@ Pick a model preset in `.env`:
 - From a phone on the same Wi-Fi: `http://<this-computer's-IP>:8000`
   (allow Python through Windows Firewall when asked)
 
+### Teacher app (React)
+
+```powershell
+cd frontend
+npm install
+npm run dev      # development: http://localhost:5173, API calls are forwarded to :8000
+npm run build    # production: writes frontend/dist, which the hub serves at :8000
+```
+
+After `npm run build`, restart the hub and the whole app (UI + API) runs from one
+address, so phones on the school Wi-Fi only need `http://<hub-IP>:8000`.
+
 Test scripts (server running, data seeded):
 
 ```powershell
@@ -101,7 +113,8 @@ app/
   schemas.py        API request bodies
   api/              API routes
   graphs/           check.py, plan.py, followup.py (LangGraph)
-  static/           teacher web app
+  static/           placeholder page (used until the React app is built)
+frontend/           React teacher app (Vite); src/api.js wraps every API call
 scripts/            check_models, seed, try_check, try_api, samples
 data/               local database + uploaded photos (gitignored)
 ```

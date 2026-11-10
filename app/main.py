@@ -5,12 +5,33 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api import router as api_router
-from app.config import settings
+from app.config import PROJECT_ROOT, settings
 from app.db import init_db
 
-STATIC_DIR = Path(__file__).parent / "static"
+# The React build (frontend/dist) when it exists, otherwise the simple placeholder page.
+REACT_BUILD = PROJECT_ROOT / "frontend" / "dist"
+WEB_DIR = REACT_BUILD if (REACT_BUILD / "index.html").exists() else Path(__file__).parent / "static"
+
+
+class SinglePageApp(StaticFiles):
+    """Serves the React app; unknown paths like /plan return index.html for React Router."""
+
+    async def get_response(self, path, scope):
+        # Unknown API paths must stay real 404s, not turn into the web page.
+        normalized = path.replace("\\", "/")  # Windows passes backslashes here
+        is_api = normalized == "api" or normalized.startswith("api/")
+        try:
+            response = await super().get_response(path, scope)
+        except StarletteHTTPException as error:
+            if error.status_code != 404 or is_api:
+                raise
+            return await super().get_response("index.html", scope)
+        if response.status_code == 404 and not is_api:
+            return await super().get_response("index.html", scope)
+        return response
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -52,4 +73,4 @@ def status():
 app.include_router(api_router)
 
 # The teacher web app. Mounted last so the API routes above take priority.
-app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
+app.mount("/", SinglePageApp(directory=WEB_DIR, html=True), name="web")
