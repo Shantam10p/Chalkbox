@@ -23,6 +23,7 @@ class Settings:
     disable_thinking: bool
     request_timeout: float
     data_dir: Path
+    workers: int
 
     @property
     def db_path(self) -> Path:
@@ -55,6 +56,7 @@ def _load_settings() -> Settings:
         disable_thinking=os.getenv("DISABLE_THINKING", "true").lower() == "true",
         request_timeout=float(os.getenv("REQUEST_TIMEOUT", "300")),
         data_dir=data_dir,
+        workers=max(1, int(os.getenv("WORKERS", "1"))),
     )
 
 

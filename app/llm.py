@@ -72,9 +72,15 @@ def ask_text(system: str, user: str, temperature: float = 0.4) -> str:
     return _chat(endpoint, messages, temperature)
 
 
-def ask_json(system: str, user: str, temperature: float = 0.2):
-    reply = ask_text(system + "\nRespond with JSON only.", user, temperature)
-    return parse_json(reply)
+def ask_json(system: str, user: str, temperature: float = 0.2, retries: int = 1):
+    """Asks for JSON and retries when a small model returns something unparseable."""
+    for attempt in range(retries + 1):
+        reply = ask_text(system + "\nRespond with JSON only.", user, temperature)
+        try:
+            return parse_json(reply)
+        except ValueError:
+            if attempt == retries:
+                raise
 
 
 def _image_data_uri(image_path: Path) -> str:
@@ -83,7 +89,7 @@ def _image_data_uri(image_path: Path) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
-def ask_vision_json(system: str, user: str, image_path: Path, temperature: float = 0.1):
+def ask_vision_json(system: str, user: str, image_path: Path, temperature: float = 0.0, retries: int = 1):
     endpoint = settings.vision
     messages = [
         {"role": "system", "content": system + "\nRespond with JSON only."},
@@ -95,4 +101,9 @@ def ask_vision_json(system: str, user: str, image_path: Path, temperature: float
             ],
         },
     ]
-    return parse_json(_chat(endpoint, messages, temperature))
+    for attempt in range(retries + 1):
+        try:
+            return parse_json(_chat(endpoint, messages, temperature))
+        except ValueError:
+            if attempt == retries:
+                raise

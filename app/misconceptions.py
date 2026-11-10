@@ -1,9 +1,10 @@
-"""The fixed list of fraction mistakes the diagnose step chooses from.
+"""Lists of common mistakes the diagnose step chooses from.
 
-A fixed list keeps small models consistent and lets the class view count mistakes.
+Each worksheet carries its own list (the Plan graph writes one per topic). A fixed list
+keeps small models consistent and lets the class view count mistakes.
 """
 
-MISCONCEPTIONS: dict[str, str] = {
+FRACTIONS: dict[str, str] = {
     "added_denominators": "Added the bottom numbers as well as the top numbers (1/4 + 1/4 = 2/8)",
     "not_simplified": "Correct value but not written in simplest form (2/4 instead of 1/2)",
     "wrong_common_denominator": "Did not find a correct common bottom number before adding or subtracting",
@@ -13,11 +14,33 @@ MISCONCEPTIONS: dict[str, str] = {
     "other": "A different mistake that does not fit the list",
 }
 
+# Used when a worksheet has no topic-specific list.
+GENERAL: dict[str, str] = {
+    "concept_gap": "Does not yet understand the main idea being tested",
+    "calculation_error": "Right method, but a small slip",
+    "misread_question": "Answered a different question than the one asked",
+    "incomplete_answer": "Started correctly but did not finish or explain fully",
+    "other": "A different mistake that does not fit the list",
+}
 
-def describe_all() -> str:
-    return "\n".join(f"- {key}: {text}" for key, text in MISCONCEPTIONS.items())
+# Always available, even if a topic list forgets them (they are set by code).
+_BUILT_IN = {
+    "not_simplified": FRACTIONS["not_simplified"],
+    "other": GENERAL["other"],
+}
 
 
-def normalize(tag: str | None) -> str:
+def with_defaults(misconceptions: dict[str, str] | None) -> dict[str, str]:
+    base = dict(misconceptions or GENERAL)
+    for key, text in _BUILT_IN.items():
+        base.setdefault(key, text)
+    return base
+
+
+def describe(misconceptions: dict[str, str]) -> str:
+    return "\n".join(f"- {key}: {text}" for key, text in misconceptions.items())
+
+
+def normalize(tag: str | None, allowed: dict[str, str]) -> str:
     tag = (tag or "").strip().lower()
-    return tag if tag in MISCONCEPTIONS else "other"
+    return tag if tag in allowed else "other"

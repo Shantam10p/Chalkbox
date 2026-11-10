@@ -1,9 +1,9 @@
 # ChalkBox
 
 AI hub for schools where the internet is a problem. One box in the school (an NVIDIA
-DGX Spark in production) runs a team of AI agents that teachers use from their phones
-over the school's local Wi-Fi: lesson planning, reading and grading handwritten
-worksheets, per-student feedback, personalized practice, and parent reports.
+DGX Spark in production) runs AI workflows that teachers use from their phones over the
+school's local Wi-Fi: lesson planning, reading and grading handwritten worksheets,
+per-student feedback, personalized practice, and parent reports.
 
 ## Setup (Windows)
 
@@ -17,42 +17,91 @@ Pick a model preset in `.env`:
 
 - **A. Ollama (offline, default):** `ollama pull qwen2.5vl:3b` and `ollama pull qwen3:4b`
 - **B. NVIDIA API catalog:** add your `nvapi-...` key and model ids from build.nvidia.com
-- **C. DGX Spark:** point the URLs at the vLLM / NIM server on the Spark
+- **C. DGX Spark:** point the URLs at the vLLM / NIM server on the Spark, and raise `WORKERS`
 
-## Check the models
-
-```powershell
-.venv\Scripts\python -m scripts.check_models
-```
-
-## Run the hub
+## Run
 
 ```powershell
-.venv\Scripts\python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+.venv\Scripts\python -m scripts.check_models     # both models answer?
+.venv\Scripts\python -m scripts.seed --reset     # demo class: Grade 4A, Dave, 30 students
+.venv\Scripts\python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-- On this machine: http://localhost:8000
+- On this machine: http://localhost:8000 (API docs at http://localhost:8000/docs)
 - From a phone on the same Wi-Fi: `http://<this-computer's-IP>:8000`
   (allow Python through Windows Firewall when asked)
-- `GET /health` and `GET /api/status` show the hub is up and which models it uses
+
+Test scripts (server running, data seeded):
+
+```powershell
+.venv\Scripts\python -m scripts.try_check        # Check graph only, no server needed
+.venv\Scripts\python -m scripts.try_api          # full teacher flow through the API
+```
+
+## How it works
+
+Three LangGraph workflows. Code does everything that must be exact; models do reading,
+judging open answers, and writing. The teacher approves everything.
+
+| Graph | Steps |
+|---|---|
+| **Check** (one worksheet photo) | read (vision) → mark (code) → ⏸ teacher fixes unsure readings → AI-grade open answers → diagnose mistakes + feedback |
+| **Plan** (lesson) | write 6-part lesson → write typed worksheet + topic mistakes → verify answers in code (retry once) |
+| **Follow-up** (one student) | practice sheet → verify answers in code, *or* parent note in the family's language |
+
+Question types: `number` (incl. fractions), `choice`, `text` are graded by code;
+`short_answer` is graded by the AI against a rubric.
+
+AI work runs in background jobs (`WORKERS` at a time). Every item has a `status`:
+
+- submissions: `queued → reading → needs_review → grading → graded → approved` (or `error`)
+- lessons, practice sheets, reports: `queued → running → ready → approved` (or `error`)
+
+## API
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/status` | configured models, worker count |
+| GET/POST | `/api/classes` | list / create classes |
+| GET | `/api/classes/{id}` | class with students, worksheets, lessons |
+| POST | `/api/classes/{id}/students` | add a student |
+| GET | `/api/students/{id}/profile` | scores over time, trend, top mistakes |
+| POST | `/api/worksheets` | create a worksheet (typed questions + answers) |
+| GET | `/api/worksheets?class_id=` · `/api/worksheets/{id}` | list / get |
+| POST | `/api/worksheets/{id}/submissions` | upload photos (multipart `files`) → starts Check |
+| GET | `/api/worksheets/{id}/submissions` | all submissions + statuses |
+| GET | `/api/worksheets/{id}/summary` | class view: accuracy per question, top mistakes, groups |
+| GET | `/api/submissions/{id}` · `/image` | result with answers · the photo |
+| POST | `/api/submissions/{id}/review` | ⏸ `{"corrections": {"4": "3/8"}}` resumes the graph |
+| POST | `/api/submissions/{id}/approve` | `{"student_id"?, "overrides"?: {"8": true}, "feedback"?}` |
+| POST | `/api/submissions/{id}/retry` | re-run a failed check |
+| POST | `/api/lessons` | `{"class_id", "subject", "topic", "minutes"?, "num_questions"?}` → starts Plan |
+| GET | `/api/lessons?class_id=` · `/api/lessons/{id}` | list / get |
+| POST | `/api/lessons/{id}/approve` | optional edits → creates the gradable worksheet |
+| POST | `/api/worksheets/{id}/practice` | practice sheet per student with graded work |
+| GET | `/api/worksheets/{id}/practice` · `/api/practice/{id}` | list / get |
+| POST | `/api/practice/{id}/approve` | optional edits |
+| POST | `/api/classes/{id}/reports` | parent note per student (family language) |
+| GET | `/api/classes/{id}/reports` · `/api/reports/{id}` | list / get |
+| POST | `/api/reports/{id}/approve` | optional edited text |
 
 ## Layout
 
 ```
 app/
-  main.py      FastAPI hub + serves the web app
-  config.py    settings from .env (model endpoints, data folder)
-  llm.py       one OpenAI-compatible client for every model
-  db.py        SQLite schema (classes, students, lessons, worksheets, submissions, answers)
-  grading.py   exact grading in plain code (the AI only reads answers)
-  misconceptions.py  fixed list of fraction mistakes
-  graphs/      LangGraph workflows (teacher checkpoints use interrupt)
-    check.py     read -> mark -> teacher review -> diagnose + feedback
-    plan.py      lesson + worksheet + answer key   (to build)
-    followup.py  practice sheets + parent notes    (to build)
-  static/      teacher web app
-scripts/
-  check_models.py   smoke test for the configured models
-  try_check.py      runs the Check graph on a sample worksheet
-data/          local database + uploaded photos (gitignored)
+  main.py           FastAPI hub + serves the web app
+  config.py         settings from .env (model endpoints, data folder, workers)
+  llm.py            one OpenAI-compatible client for every model
+  db.py             SQLite schema
+  repo.py           database helpers
+  analysis.py       class summary, student profiles (plain code)
+  grading.py        exact grading + arithmetic checker (plain code)
+  misconceptions.py mistake lists (fractions + general)
+  jobs.py           background runner for the graphs
+  schemas.py        API request bodies
+  api/              API routes
+  graphs/           check.py, plan.py, followup.py (LangGraph)
+  static/           teacher web app
+scripts/            check_models, seed, try_check, try_api, samples
+data/               local database + uploaded photos (gitignored)
 ```
