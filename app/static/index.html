@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChalkBox</title>
+  <style>
+    :root { --bg: #f6f5f1; --fg: #1f2421; --muted: #5f6661; --card: #ffffff; --accent: #2f6b4f; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #161a18; --fg: #e8ebe9; --muted: #a3aba6; --card: #202623; --accent: #6fbf95; }
+    }
+    body { margin: 0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+    main { max-width: 640px; margin: 0 auto; padding: 32px 16px; }
+    h1 { margin: 0 0 4px; color: var(--accent); }
+    p { color: var(--muted); }
+    .card { background: var(--card); border-radius: 12px; padding: 16px; margin-top: 16px; }
+    code { font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ChalkBox</h1>
+    <p>AI hub for schools where the internet is a problem.</p>
+    <div class="card" id="status">Checking hub status…</div>
+  </main>
+  <script>
+    fetch("/api/status")
+      .then((r) => r.json())
+      .then((s) => {
+        document.getElementById("status").innerHTML =
+          `<strong>Hub is running.</strong><br>` +
+          `Text model: <code>${s.text_model.model}</code><br>` +
+          `Vision model: <code>${s.vision_model.model}</code>`;
+      })
+      .catch(() => {
+        document.getElementById("status").textContent = "Hub is not reachable.";
+      });
+  </script>
+</body>
+</html>

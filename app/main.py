@@ -1,18 +1,22 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from contextlib import asynccontextmanager
+from pathlib import Path
 
-from app.essay_agent import write_essay
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="DGX Hack API")
+from app.config import settings
+from app.db import init_db
+
+STATIC_DIR = Path(__file__).parent / "static"
 
 
-class EssayRequest(BaseModel):
-    topic: str = Field(min_length=3, max_length=500)
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    init_db()
+    yield
 
 
-class EssayResponse(BaseModel):
-    topic: str
-    essay: str
+app = FastAPI(title="ChalkBox Hub", lifespan=lifespan)
 
 
 @app.get("/health")
@@ -20,16 +24,16 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/healthz")
-def healthz():
-    return {"status": "ok"}
+@app.get("/api/status")
+def status():
+    """Shows which models the hub is configured to use (never exposes API keys)."""
+    return {
+        "hub": "ChalkBox",
+        "text_model": {"model": settings.text.model, "base_url": settings.text.base_url},
+        "vision_model": {"model": settings.vision.model, "base_url": settings.vision.base_url},
+        "thinking_disabled": settings.disable_thinking,
+    }
 
 
-@app.post("/essay", response_model=EssayResponse)
-def generate_essay(request: EssayRequest):
-    try:
-        essay = write_essay(request.topic)
-    except RuntimeError as error:
-        raise HTTPException(status_code=503, detail=str(error)) from error
-
-    return EssayResponse(topic=request.topic, essay=essay)
+# The teacher web app. Mounted last so the API routes above take priority.
+app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
