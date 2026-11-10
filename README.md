@@ -44,9 +44,15 @@ app/
   config.py    settings from .env (model endpoints, data folder)
   llm.py       one OpenAI-compatible client for every model
   db.py        SQLite schema (classes, students, lessons, worksheets, submissions, answers)
-  agents/      Reader, Checker, Diagnoser, Planner, Coach, Reporter, Boss
+  grading.py   exact grading in plain code (the AI only reads answers)
+  misconceptions.py  fixed list of fraction mistakes
+  graphs/      LangGraph workflows (teacher checkpoints use interrupt)
+    check.py     read -> mark -> teacher review -> diagnose + feedback
+    plan.py      lesson + worksheet + answer key   (to build)
+    followup.py  practice sheets + parent notes    (to build)
   static/      teacher web app
 scripts/
   check_models.py   smoke test for the configured models
+  try_check.py      runs the Check graph on a sample worksheet
 data/          local database + uploaded photos (gitignored)
 ```
