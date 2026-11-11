@@ -1,7 +1,7 @@
 """Runs the Check graph directly (no server, no database) on one worksheet photo.
 
 Run from the project root:  python -m scripts.try_check [path/to/photo.jpg]
-Without a path it draws the sample fractions worksheet filled in by "Ravi".
+Without a path it draws the sample fractions worksheet filled in by "Maya".
 """
 
 import json
@@ -24,7 +24,7 @@ def main() -> None:
             image_path = Path(sys.argv[1])
         else:
             image_path = Path(tmp) / "sample.png"
-            draw_worksheet(image_path, FRACTIONS_WORKSHEET, SAMPLE_ANSWERS, "Ravi")
+            draw_worksheet(image_path, FRACTIONS_WORKSHEET, SAMPLE_ANSWERS, "Maya")
 
         start = time.perf_counter()
         state = check_graph().invoke(

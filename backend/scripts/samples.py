@@ -34,17 +34,20 @@ SAMPLE_ANSWERS = {
 
 CLASS = {"name": "Grade 4A", "grade": 4, "teacher": "Dave"}
 
+# Family languages used in the demo: English, Spanish, Hindi, Nepali, Tagalog.
+LANGUAGES = ["English", "Spanish", "Hindi", "Nepali", "Tagalog"]
+
 STUDENTS = [
-    ("Ravi Kumar", "Hindi"), ("Meena Devi", "Hindi"), ("Arjun Singh", "Hindi"),
-    ("Priya Sharma", "Hindi"), ("Kiran Rao", "Telugu"), ("Lakshmi Reddy", "Telugu"),
-    ("Suresh Yadav", "Hindi"), ("Anita Kumari", "Hindi"), ("Vijay Patel", "Gujarati"),
-    ("Sunita Bai", "Hindi"), ("Rahul Verma", "Hindi"), ("Pooja Gupta", "Hindi"),
-    ("Amit Mishra", "Hindi"), ("Kavya Nair", "Malayalam"), ("Rohit Das", "Bengali"),
-    ("Neha Joshi", "Marathi"), ("Sanjay Meena", "Hindi"), ("Divya Iyer", "Tamil"),
-    ("Manoj Tiwari", "Hindi"), ("Asha Kumari", "Hindi"), ("Deepak Chauhan", "Hindi"),
-    ("Rekha Pal", "Hindi"), ("Gopal Krishnan", "Tamil"), ("Sita Rani", "Hindi"),
-    ("Imran Khan", "Urdu"), ("Fatima Begum", "Urdu"), ("Harish Naik", "Kannada"),
-    ("Jyoti Prasad", "Hindi"), ("Mohan Lal", "Hindi"), ("Nisha Thakur", "English"),
+    ("Maya Johnson", "English"), ("Lucas Garcia", "Spanish"), ("Ava Thompson", "English"),
+    ("Noah Williams", "English"), ("Sofia Hernandez", "Spanish"), ("Ethan Brown", "English"),
+    ("Priya Patel", "Hindi"), ("Liam Carter", "English"), ("Isabella Martinez", "Spanish"),
+    ("Mateo Lopez", "Spanish"), ("Chloe Kim", "English"), ("Aarav Sharma", "Hindi"),
+    ("Olivia Davis", "English"), ("Daniel Nguyen", "English"), ("Grace Wilson", "English"),
+    ("Sanjay Thapa", "Nepali"), ("Emma Rodriguez", "Spanish"), ("Jacob Anderson", "English"),
+    ("Angel Reyes", "Tagalog"), ("Mia Santos", "Tagalog"), ("James Taylor", "English"),
+    ("Anjali Gurung", "Nepali"), ("Benjamin Lee", "English"), ("Camila Torres", "Spanish"),
+    ("Elijah Jackson", "English"), ("Nikhil Mehta", "Hindi"), ("Hannah White", "English"),
+    ("Jasmine Cruz", "Tagalog"), ("Samuel Moore", "English"), ("Pooja Rai", "Nepali"),
 ]
 
 

@@ -8,8 +8,7 @@ import { useLoad, usePolling } from '../lib/hooks.js'
 
 // "Today": what needs the teacher right now, plus the two main actions.
 async function loadTodo(classInfo) {
-  const [hub, reports, perWorksheet] = await Promise.all([
-    api.status(),
+  const [reports, perWorksheet] = await Promise.all([
     api.reports(classInfo.id),
     Promise.all(
       classInfo.worksheets.map(async (w) => ({
@@ -38,7 +37,7 @@ async function loadTodo(classInfo) {
   const notes = reports.filter((r) => r.status === 'ready').length
   if (notes) items.push({ key: 'reports', to: '/reports', icon: 'report', title: `Approve ${notes} parent note${notes > 1 ? 's' : ''}`, status: 'ready' })
 
-  return { hub, items, working }
+  return { items, working }
 }
 
 export default function Home() {
@@ -72,9 +71,7 @@ export default function Home() {
         {classError && <ErrorState message={`Can't reach the ChalkBox hub: ${classError}`} />}
 
         <section className="hero">
-          <span className="small row" style={{ gap: 6 }}>
-            <Icon name="wifiOff" size={16} /> Works without internet
-          </span>
+          <Icon name="wifiOff" size={20} title="Works without internet" />
           <h2>Hello, {teacher}</h2>
           <p>{current ? `${current.name} · ${current.students.length} students` : 'Loading your class…'}</p>
         </section>
@@ -127,12 +124,6 @@ export default function Home() {
               ChalkBox is working on {todo.data.working} item{todo.data.working > 1 ? 's' : ''}. This page updates by itself.
             </span>
           </div>
-        )}
-
-        {todo.data?.hub && (
-          <p className="tiny muted" style={{ textAlign: 'center' }}>
-            Hub models: {todo.data.hub.vision_model.model} (reading) · {todo.data.hub.text_model.model} (writing)
-          </p>
         )}
       </Page>
     </>

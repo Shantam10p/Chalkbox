@@ -21,7 +21,7 @@ def _test_image(path: Path) -> None:
         font = ImageFont.truetype("arial.ttf", 48)
     except OSError:
         font = ImageFont.load_default()
-    draw.text((30, 30), "Name: Ravi", fill="black", font=font)
+    draw.text((30, 30), "Name: Maya", fill="black", font=font)
     draw.text((30, 110), "Q1: 3/4", fill="black", font=font)
     image.save(path)
 

@@ -52,7 +52,7 @@ def main() -> None:
     all_correct["8"] = "The bottom number stays the same, you only add the top numbers"
     with tempfile.TemporaryDirectory() as tmp:
         files = []
-        for name, answers in (("Ravi", SAMPLE_ANSWERS), ("Meena", all_correct)):
+        for name, answers in (("Maya", SAMPLE_ANSWERS), ("Lucas", all_correct)):
             path = Path(tmp) / f"{name}.png"
             draw_worksheet(path, FRACTIONS_WORKSHEET, answers, name)
             files.append(("files", (path.name, path.read_bytes(), "image/png")))
@@ -83,9 +83,9 @@ def main() -> None:
     # 4. Class summary and a student profile.
     summary = call("GET", f"/worksheets/{worksheet_id}/summary")
     log("Summary: " + json.dumps({k: summary[k] for k in ("graded", "average", "top_mistakes", "groups")}))
-    ravi = next(s for s in class_["students"] if s["name"].startswith("Ravi"))
-    profile = call("GET", f"/students/{ravi['id']}/profile")
-    log(f"Ravi's profile: trend {profile['trend']}, mistakes {profile['top_mistakes']}")
+    maya = next(s for s in class_["students"] if s["name"].startswith("Maya"))
+    profile = call("GET", f"/students/{maya['id']}/profile")
+    log(f"Maya's profile: trend {profile['trend']}, mistakes {profile['top_mistakes']}")
 
     # 5. Personalized practice sheets.
     practice_ids = call("POST", f"/worksheets/{worksheet_id}/practice", json={})["practice_ids"]
@@ -94,8 +94,8 @@ def main() -> None:
         log(f"Practice for {sheet['student_name']} [{sheet['status']}]: "
             f"{json.dumps(sheet['content'], ensure_ascii=False)} {sheet['error'] or ''}")
 
-    # 6. Parent note for Ravi, in Hindi.
-    report_id = call("POST", "/classes/1/reports", json={"student_ids": [ravi["id"]]})["report_ids"][0]
+    # 6. Parent note for Maya, in her family language.
+    report_id = call("POST", "/classes/1/reports", json={"student_ids": [maya["id"]]})["report_ids"][0]
     report = wait(f"/reports/{report_id}")
     log(f"Parent note ({report['language']}) [{report['status']}]: {report['text'] or report['error']}")
 

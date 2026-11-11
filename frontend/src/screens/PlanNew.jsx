@@ -9,7 +9,7 @@ import { useAction } from '../lib/hooks.js'
 
 const SUBJECTS = ['Math', 'Science', 'English', 'Social Studies']
 const LENGTHS = [30, 40, 60]
-const LANGUAGES = ['English', 'Hindi', 'Telugu', 'Tamil', 'Marathi', 'Bengali', 'Kannada', 'Swahili', 'Spanish']
+const LANGUAGES = ['English', 'Spanish', 'Hindi', 'Nepali', 'Tagalog']
 
 export default function PlanNew() {
   const { current } = useClass()
