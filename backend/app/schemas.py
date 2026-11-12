@@ -62,7 +62,6 @@ class LessonIn(BaseModel):
     minutes: int = Field(default=40, ge=15, le=120)
     num_questions: int = Field(default=8, ge=2, le=20)
     language: str | None = None
-    fix_yesterday: bool = True
 
 
 class ApproveLessonIn(BaseModel):

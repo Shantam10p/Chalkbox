@@ -142,17 +142,6 @@ def list_worksheets(class_id: int | None = None) -> list[dict]:
         return _rows(conn.execute(query, params))
 
 
-def latest_graded_worksheet(class_id: int) -> int | None:
-    with connect() as conn:
-        row = conn.execute(
-            "SELECT w.id FROM worksheets w JOIN submissions s ON s.worksheet_id = w.id "
-            "WHERE w.class_id = ? AND s.status IN ('graded', 'approved') "
-            "ORDER BY w.id DESC LIMIT 1",
-            (class_id,),
-        ).fetchone()
-    return row["id"] if row else None
-
-
 # ---------------------------------------------------------------- submissions
 
 def create_submission(worksheet_id: int, image_path: str) -> int:

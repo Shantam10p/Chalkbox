@@ -80,8 +80,6 @@ def run_lesson(lesson_id: int) -> None:
             "minutes": params.get("minutes", 40),
             "num_questions": params.get("num_questions", 8),
             "language": params.get("language") or "English",
-            "recent_mistakes": analysis.recent_mistakes(lesson["class_id"])
-            if params.get("fix_yesterday", True) else [],
         })
         content = {
             "lesson": output.get("lesson", {}),

@@ -99,7 +99,7 @@ def main() -> None:
     report = wait(f"/reports/{report_id}")
     log(f"Parent note ({report['language']}) [{report['status']}]: {report['text'] or report['error']}")
 
-    # 7. Plan the next lesson (its 'Fix yesterday' should target the class's mistakes).
+    # 7. Plan the next lesson.
     if "--skip-lesson" not in sys.argv:
         lesson_id = call("POST", "/lessons", json={
             "class_id": 1, "subject": "Math", "topic": "Subtracting fractions with the same denominator",

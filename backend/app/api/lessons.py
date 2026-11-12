@@ -10,7 +10,7 @@ router = APIRouter(tags=["lessons"])
 
 @router.post("/lessons", status_code=202)
 def create_lesson(body: LessonIn):
-    """Starts the Plan graph: 6-part lesson + worksheet + answer key, in the background."""
+    """Starts the Plan graph: 5-part lesson + worksheet + answer key, in the background."""
     found(repo.get_class(body.class_id), "Class")
     params = body.model_dump(exclude={"class_id", "subject", "topic"})
     lesson_id = repo.create_lesson(body.class_id, body.subject, body.topic, params)

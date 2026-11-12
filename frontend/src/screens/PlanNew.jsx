@@ -16,7 +16,7 @@ export default function PlanNew() {
   const navigate = useNavigate()
   const toast = useToast()
   const [form, setForm] = useState({
-    subject: 'Math', topic: '', minutes: 40, num_questions: 8, language: 'English', fix_yesterday: true,
+    subject: 'Math', topic: '', minutes: 40, num_questions: 8, language: 'English',
   })
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }))
 
@@ -92,16 +92,6 @@ export default function PlanNew() {
             <select className="select" value={form.language} onChange={(e) => set('language')(e.target.value)}>
               {LANGUAGES.map((l) => <option key={l}>{l}</option>)}
             </select>
-          </label>
-
-          <label className="card switch">
-            <span>
-              <span className="strong">Fix yesterday's mistakes</span>
-              <span className="small muted" style={{ display: 'block' }}>
-                Start with 5 minutes on what the class got wrong last time
-              </span>
-            </span>
-            <input type="checkbox" checked={form.fix_yesterday} onChange={(e) => set('fix_yesterday')(e.target.checked)} />
           </label>
 
           <Notice tone="info" icon="sparkle">

@@ -4,8 +4,8 @@
                           ▲                    │
                           └── retry (once) ────┘  if no usable questions
 
-- write_lesson:    text model writes the 6-part lesson (goal, fix yesterday, teach,
-                   practice together, practice alone, teacher notes)
+- write_lesson:    text model writes the 5-part lesson (goal, explain the idea,
+                   practice as a class, independent practice, teacher notes)
 - write_worksheet: text model writes typed questions, answers/rubrics and a topic-specific
                    list of common mistakes
 - verify:          plain code recomputes every arithmetic answer and drops broken questions
@@ -33,7 +33,6 @@ class PlanState(TypedDict, total=False):
     minutes: int
     num_questions: int
     language: str
-    recent_mistakes: list[str]     # from the class's last worksheet, for "Fix yesterday"
     # Outputs
     lesson: dict
     questions: list[dict]
@@ -42,30 +41,20 @@ class PlanState(TypedDict, total=False):
     attempts: int
 
 
-def _timing(minutes: int, has_fix: bool) -> dict[str, int]:
-    fix = 5 if has_fix else 0
-    rest = max(minutes - fix, 15)
-    teach, together = round(rest * 0.3), round(rest * 0.25)
-    return {"fix_yesterday": fix, "teach": teach, "practice_together": together,
-            "practice_alone": rest - teach - together}
+def _timing(minutes: int) -> dict[str, int]:
+    total = max(minutes, 15)
+    teach, together = round(total * 0.3), round(total * 0.25)
+    return {"teach": teach, "practice_together": together, "practice_alone": total - teach - together}
 
 
 def write_lesson(state: PlanState) -> dict:
-    mistakes = state.get("recent_mistakes") or []
-    fix_line = (
-        "Yesterday's worksheet showed these common mistakes: " + "; ".join(mistakes)
-        + ". Start the lesson with a short section that fixes them."
-        if mistakes else "This is the first lesson on this topic, so fix_yesterday is null."
-    )
     lesson = ask_json(
         "You help teachers in low-resource schools plan clear lessons that need only chalk, "
         "paper and everyday objects (no screens).",
         f"Plan a {state.get('minutes', 40)}-minute Grade {state['grade']} {state['subject']} "
-        f"lesson on '{state['topic']}'. The class language is {state.get('language', 'English')}.\n"
-        f"{fix_line}\n\n"
+        f"lesson on '{state['topic']}'. The class language is {state.get('language', 'English')}.\n\n"
         "Return JSON with exactly these keys:\n"
         '{"goal": "<one sentence: what students will be able to do>",\n'
-        ' "fix_yesterday": {"mistake": "...", "steps": ["...", "..."]} or null,\n'
         ' "teach": {"explanation": "...", "examples": ["...", "..."], "watch_for": ["common mistake", "..."]},\n'
         ' "practice_together": ["problem to solve with the class on the board", "..."],\n'
         ' "practice_alone": "<one sentence telling students what to do on the worksheet>",\n'
@@ -75,9 +64,7 @@ def write_lesson(state: PlanState) -> dict:
     )
     if not isinstance(lesson, dict):
         lesson = {}
-    if not mistakes:
-        lesson["fix_yesterday"] = None
-    lesson["timing"] = _timing(int(state.get("minutes", 40)), bool(mistakes))
+    lesson["timing"] = _timing(int(state.get("minutes", 40)))
     return {"lesson": lesson, "attempts": 0}
 
 

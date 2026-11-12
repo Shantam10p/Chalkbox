@@ -71,17 +71,6 @@ def worksheet_summary(worksheet_id: int) -> dict | None:
     }
 
 
-def recent_mistakes(class_id: int, limit: int = 2) -> list[str]:
-    """The class's most common mistakes on its latest graded worksheet (for 'Fix yesterday')."""
-    worksheet_id = repo.latest_graded_worksheet(class_id)
-    if worksheet_id is None:
-        return []
-    summary = worksheet_summary(worksheet_id)
-    return [
-        f"{m['description']} ({m['count']} student{'s' if m['count'] != 1 else ''})"
-        for m in summary["top_mistakes"][:limit]
-        if m["id"] != "other"
-    ]
 
 
 def student_profile(student_id: int) -> dict | None:

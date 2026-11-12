@@ -9,9 +9,9 @@ import { asList, isBusy } from '../lib/format.js'
 import { useAction, useLoad, usePolling } from '../lib/hooks.js'
 import { canDeleteLesson, confirmAndDeleteLesson } from '../lib/lessons.js'
 
-function Part({ number, title, minutes, fix = false, children }) {
+function Part({ number, title, minutes, children }) {
   return (
-    <section className={`lesson-part${fix ? ' fix' : ''}`}>
+    <section className="lesson-part">
       <h3>
         <span className="q-num">{number}</span>
         <span className="grow">{title}</span>
@@ -33,32 +33,25 @@ function LessonPlan({ lesson }) {
   const timing = lesson.timing ?? {}
   const teach = lesson.teach ?? {}
   const notes = lesson.teacher_notes ?? {}
-  const fix = lesson.fix_yesterday
   return (
-    <div className="card stack" style={{ gap: 18 }}>
+    <div className="card stack lesson-parts">
       <Part number={1} title="Goal">
         <p>{lesson.goal}</p>
       </Part>
-      {fix && (
-        <Part number={2} title="Fix yesterday" minutes={timing.fix_yesterday} fix>
-          {fix.mistake && <p className="small"><b>Mistake:</b> {fix.mistake}</p>}
-          <Bullets items={fix.steps} ordered />
-        </Part>
-      )}
-      <Part number={fix ? 3 : 2} title="Teach (I do)" minutes={timing.teach}>
+      <Part number={2} title="Explain the idea" minutes={timing.teach}>
         {teach.explanation && <p>{teach.explanation}</p>}
         {asList(teach.examples).length > 0 && <p className="small strong">Examples</p>}
         <Bullets items={teach.examples} />
         {asList(teach.watch_for).length > 0 && <p className="small strong">Watch for</p>}
         <Bullets items={teach.watch_for} />
       </Part>
-      <Part number={fix ? 4 : 3} title="Practice together (we do)" minutes={timing.practice_together}>
+      <Part number={3} title="Practice as a class" minutes={timing.practice_together}>
         <Bullets items={lesson.practice_together} />
       </Part>
-      <Part number={fix ? 5 : 4} title="Practice alone (you do)" minutes={timing.practice_alone}>
+      <Part number={4} title="Independent practice" minutes={timing.practice_alone}>
         <p>{lesson.practice_alone || 'Students complete the worksheet below.'}</p>
       </Part>
-      <Part number={fix ? 6 : 5} title="Teacher notes">
+      <Part number={5} title="Teacher notes">
         {asList(notes.materials).length > 0 && <p className="small"><b>Materials:</b> {asList(notes.materials).join(', ')}</p>}
         {asList(notes.local_language_words).length > 0 && (
           <p className="small"><b>Local words:</b> {asList(notes.local_language_words).join(', ')}</p>
