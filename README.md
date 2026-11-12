@@ -59,6 +59,24 @@ Test scripts (from `backend`, server running, data seeded):
 .venv\Scripts\python -m scripts.try_api          # full teacher flow through the API
 ```
 
+## Accounts
+
+The seed script creates two demo logins (`python -m scripts.seed` adds them to an
+existing database without touching other data):
+
+| Username | Password | Role | Can see |
+|---|---|---|---|
+| `dave` | `dave123` | Teacher | Everything: planning, checking, class results, reports |
+| `maya` | `maya123` | Student (Maya Johnson) | Her own approved work and feedback, her practice sheets, her progress, and the Ask helper |
+
+Change these passwords before using ChalkBox with a real class. Passwords are stored as
+PBKDF2 hashes; the browser keeps a 30-day HttpOnly session cookie. Students only ever see
+work the teacher has approved, and practice sheets without the answers.
+
+The student **Ask** helper only discusses topics from the class's worksheets and lessons, gives
+hints instead of answers, declines anything off-topic, flags worrying messages for the
+teacher, and allows 30 questions per hour. Teachers can read every chat on the student's profile.
+
 ## How it works
 
 Three LangGraph workflows. Code does everything that must be exact; models do reading,
@@ -67,7 +85,7 @@ judging open answers, and writing. The teacher approves everything.
 | Graph | Steps |
 |---|---|
 | **Check** (one worksheet photo) | read (vision) → mark (code) → ⏸ teacher fixes unsure readings → AI-grade open answers → diagnose mistakes + feedback |
-| **Plan** (lesson) | write 6-part lesson → write typed worksheet + topic mistakes → verify answers in code (retry once) |
+| **Plan** (lesson) | write 5-part lesson → write typed worksheet + topic mistakes → verify answers in code (retry once) |
 | **Follow-up** (one student) | practice sheet → verify answers in code, *or* parent note in the family's language |
 
 Question types: `number` (incl. fractions), `choice`, `text` are graded by code;
