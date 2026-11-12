@@ -1,5 +1,7 @@
 # ChalkBox
 
+**Made for NVIDIA DGX Spark x SFBU hackathon**
+
 AI hub for schools where the internet is a problem. One box in the school (an NVIDIA
 DGX Spark in production) runs AI workflows that teachers use from their phones over the
 school's local Wi-Fi: lesson planning, reading and grading handwritten worksheets,
