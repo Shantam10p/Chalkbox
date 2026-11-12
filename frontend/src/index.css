@@ -325,6 +325,18 @@ details.disclosure > summary { cursor: pointer; list-style: none; display: flex;
 details.disclosure > summary::-webkit-details-marker { display: none; }
 details.disclosure[open] > summary .chev { transform: rotate(90deg); }
 
+/* ---------------------------------------------------------------- sign in */
+
+.login { min-height: 100dvh; max-width: 420px; margin: 0 auto; padding: 48px 16px 24px; display: grid; align-content: center; gap: 24px; }
+.login-brand { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.login-brand h1 { font-size: 2rem; font-weight: 800; }
+.login-logo { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; background: var(--primary); color: var(--primary-fg); }
+.login-card { gap: 16px; padding: 20px; }
+.login-foot { display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+
+.practice-list { margin: 0; padding-left: 22px; display: grid; gap: 12px; }
+
+
 /* ---------------------------------------------------------------- print pages */
 
 .print-page { background: #fff; color: #000; min-height: 100dvh; }

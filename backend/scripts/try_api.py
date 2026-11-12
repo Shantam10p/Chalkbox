@@ -14,7 +14,7 @@ from pathlib import Path
 
 import httpx
 
-from scripts.samples import FRACTIONS_WORKSHEET, SAMPLE_ANSWERS, draw_worksheet
+from scripts.samples import ACCOUNTS, FRACTIONS_WORKSHEET, SAMPLE_ANSWERS, draw_worksheet
 
 BASE = "http://127.0.0.1:8000/api"
 DONE = {"graded", "needs_review", "ready", "approved", "error"}
@@ -42,6 +42,10 @@ def wait(path: str, until=DONE, every: float = 5):
 
 
 def main() -> None:
+    teacher = next(a for a in ACCOUNTS if a["role"] == "teacher")
+    call("POST", "/auth/login", json={"username": teacher["username"], "password": teacher["password"]})
+    log(f"Signed in as {teacher['username']}")
+
     class_ = call("GET", "/classes/1")
     worksheet_id = class_["worksheets"][0]["id"]
     log(f"Class {class_['name']} ({len(class_['students'])} students), worksheet {worksheet_id}")

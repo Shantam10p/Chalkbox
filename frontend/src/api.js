@@ -11,8 +11,14 @@ async function request(method, path, body) {
   const response = await fetch(`/api${path}`, options)
   const data = await response.json().catch(() => null)
   if (!response.ok) {
+    // A session that expired mid-use sends the app back to the sign-in screen.
+    if (response.status === 401 && !path.startsWith('/auth/')) {
+      window.dispatchEvent(new Event('chalkbox:signed-out'))
+    }
     const detail = data?.detail
-    throw new Error(typeof detail === 'string' ? detail : `Request failed (${response.status})`)
+    const error = new Error(typeof detail === 'string' ? detail : `Request failed (${response.status})`)
+    error.status = response.status
+    throw error
   }
   return data
 }
@@ -22,6 +28,19 @@ const post = (path, body = {}) => request('POST', path, body)
 
 export const api = {
   status: () => get('/status'),
+
+  // Sign in / out
+  me: () => get('/auth/me'),
+  login: (username, password) => post('/auth/login', { username, password }),
+  logout: () => post('/auth/logout'),
+
+  // Student's own work (student accounts only)
+  myOverview: () => get('/me'),
+  myWork: () => get('/me/work'),
+  myWorkDetail: (id) => get(`/me/work/${id}`),
+  myWorkImageUrl: (id) => `/api/me/work/${id}/image`,
+  myPractice: () => get('/me/practice'),
+  myProgress: () => get('/me/progress'),
 
   // Classes and students
   classes: () => get('/classes'),

@@ -1,19 +1,12 @@
 import { NavLink } from 'react-router-dom'
+import { TEACHER_TABS } from '../lib/tabs.js'
 import Icon from './Icon.jsx'
 
-const TABS = [
-  { to: '/', label: 'Today', icon: 'home', end: true },
-  { to: '/plan', label: 'Plan', icon: 'plan' },
-  { to: '/check', label: 'Check', icon: 'camera' },
-  { to: '/class', label: 'Class', icon: 'class' },
-  { to: '/reports', label: 'Reports', icon: 'report' },
-]
-
-export default function TabBar() {
+export default function TabBar({ tabs = TEACHER_TABS }) {
   return (
     <nav className="tabbar no-print" aria-label="Main">
-      <div className="tabbar-inner">
-        {TABS.map((tab) => (
+      <div className="tabbar-inner" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
+        {tabs.map((tab) => (
           <NavLink key={tab.to} to={tab.to} end={tab.end}>
             <span className="tab-icon">
               <Icon name={tab.icon} size={22} />

@@ -34,6 +34,13 @@ SAMPLE_ANSWERS = {
 
 CLASS = {"name": "Grade 4A", "grade": 4, "teacher": "Dave"}
 
+# Demo logins. Change these passwords before using ChalkBox with a real class.
+ACCOUNTS = [
+    {"username": "dave", "password": "dave123", "role": "teacher", "display_name": "Dave"},
+    {"username": "maya", "password": "maya123", "role": "student", "display_name": "Maya",
+     "student": "Maya Johnson"},
+]
+
 # Family languages used in the demo: English, Spanish, Hindi, Nepali, Tagalog.
 LANGUAGES = ["English", "Spanish", "Hindi", "Nepali", "Tagalog"]
 

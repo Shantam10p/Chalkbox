@@ -100,6 +100,26 @@ CREATE TABLE IF NOT EXISTS reports (
     created_at    TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Login accounts. A teacher is linked to a class; a student account to a student row.
+CREATE TABLE IF NOT EXISTS users (
+    id             INTEGER PRIMARY KEY,
+    username       TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    password_hash  TEXT NOT NULL,
+    role           TEXT NOT NULL CHECK (role IN ('teacher', 'student')),
+    display_name   TEXT NOT NULL,
+    class_id       INTEGER REFERENCES classes(id),
+    student_id     INTEGER REFERENCES students(id),
+    created_at     TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Signed-in browsers. Only a hash of the session token is stored.
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash   TEXT PRIMARY KEY,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at   TEXT NOT NULL,
+    created_at   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_students_class ON students(class_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_worksheet ON submissions(worksheet_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);

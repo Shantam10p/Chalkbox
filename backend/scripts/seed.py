@@ -1,16 +1,17 @@
-"""Fills the database with a demo class: Grade 4A (teacher Dave), 30 students, and one
-fractions worksheet.
+"""Fills the database with a demo class: Grade 4A (teacher Dave), 30 students, one fractions
+worksheet, and two login accounts (teacher Dave and student Maya Johnson).
 
-Run from the project root:  python -m scripts.seed          (only if the database is empty)
-                            python -m scripts.seed --reset  (wipe everything first)
+Run from the backend folder:
+    python -m scripts.seed          (adds the demo class if empty; always adds missing accounts)
+    python -m scripts.seed --reset  (wipe everything first)
 """
 
 import sys
 
-from app import repo
+from app import auth, repo
 from app.config import settings
 from app.db import init_db
-from scripts.samples import CLASS, FRACTIONS_WORKSHEET, STUDENTS
+from scripts.samples import ACCOUNTS, CLASS, FRACTIONS_WORKSHEET, STUDENTS
 
 
 def reset() -> None:
@@ -24,10 +25,9 @@ def reset() -> None:
     print("Database and uploads cleared.")
 
 
-def seed() -> None:
-    init_db()
+def seed_class() -> None:
     if repo.list_classes():
-        print("Database already has data. Use --reset to start over.")
+        print("Class data already exists (use --reset to start over).")
         return
     class_id = repo.create_class(CLASS["name"], CLASS["grade"], CLASS["teacher"])
     for name, language in STUDENTS:
@@ -41,7 +41,31 @@ def seed() -> None:
           f"{len(STUDENTS)} students, worksheet {worksheet_id}.")
 
 
+def seed_accounts() -> None:
+    """Adds the demo logins if they are missing. Safe to run on a database with real data."""
+    class_ = repo.list_classes()[0]
+    students = {s["name"]: s["id"] for s in repo.list_students(class_["id"])}
+    for account in ACCOUNTS:
+        if auth.get_user_by_username(account["username"]):
+            print(f"Account '{account['username']}' already exists.")
+            continue
+        student_id = None
+        if account["role"] == "student":
+            student_id = students.get(account["student"])
+            if student_id is None:
+                print(f"Skipped '{account['username']}': no student named {account['student']}.")
+                continue
+        auth.create_user(
+            account["username"], account["password"], account["role"], account["display_name"],
+            class_id=class_["id"], student_id=student_id,
+        )
+        print(f"Created {account['role']} account '{account['username']}' "
+              f"(password: {account['password']}).")
+
+
 if __name__ == "__main__":
     if "--reset" in sys.argv:
         reset()
-    seed()
+    init_db()
+    seed_class()
+    seed_accounts()

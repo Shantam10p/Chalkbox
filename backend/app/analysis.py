@@ -72,8 +72,8 @@ def worksheet_summary(worksheet_id: int) -> dict | None:
 
 
 
-
-def student_profile(student_id: int) -> dict | None:
+def student_profile(student_id: int, approved_only: bool = False) -> dict | None:
+    """approved_only=True is what the student sees: only work the teacher has signed off."""
     student = repo.get_student(student_id)
     if student is None:
         return None
@@ -81,7 +81,8 @@ def student_profile(student_id: int) -> dict | None:
     history: dict[int, dict] = {}
     mistake_counts: Counter = Counter()
     descriptions: dict[str, str] = {}
-    for row in repo.student_answers(student_id):
+    statuses = ("approved",) if approved_only else ("graded", "approved")
+    for row in repo.student_answers(student_id, statuses):
         # Rows for the same submission share one history entry.
         history.setdefault(row["submission_id"], {
             "submission_id": row["submission_id"], "worksheet_id": row["worksheet_id"],

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { api } from '../api.js'
 import { useClass } from '../components/ClassContext.jsx'
 import Icon from '../components/Icon.jsx'
+import SignOutButton from '../components/SignOutButton.jsx'
 import { AppBar, ErrorState, ListLink, Page, Skeleton, StatusBadge } from '../components/ui.jsx'
 import { isBusy, needsTeacher } from '../lib/format.js'
 import { useLoad, usePolling } from '../lib/hooks.js'
@@ -52,19 +53,22 @@ export default function Home() {
       <AppBar
         title={<span className="brand">ChalkBox</span>}
         actions={
-          classes?.length > 1 && (
-            <select
-              className="select"
-              style={{ width: 'auto', minHeight: 40 }}
-              value={classId ?? ''}
-              onChange={(e) => setClassId(Number(e.target.value))}
-              aria-label="Class"
-            >
-              {classes.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          )
+          <>
+            {classes?.length > 1 && (
+              <select
+                className="select"
+                style={{ width: 'auto', minHeight: 40 }}
+                value={classId ?? ''}
+                onChange={(e) => setClassId(Number(e.target.value))}
+                aria-label="Class"
+              >
+                {classes.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            )}
+            <SignOutButton />
+          </>
         }
       />
       <Page>

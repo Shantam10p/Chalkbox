@@ -253,16 +253,40 @@ def approve_submission(submission_id: int, student_id: int | None,
     update_submission(submission_id, **fields)
 
 
-def student_answers(student_id: int) -> list[dict]:
+def student_answers(student_id: int, statuses: tuple[str, ...] = ("graded", "approved")) -> list[dict]:
     """Every graded answer by one student, newest worksheet last."""
+    marks = ", ".join("?" for _ in statuses)
     with connect() as conn:
         return _rows(conn.execute(
             "SELECT s.id AS submission_id, s.worksheet_id, w.title, w.topic, s.created_at, "
             "s.score_correct, s.score_total, a.question_no, a.correct, a.misconception "
             "FROM submissions s JOIN worksheets w ON w.id = s.worksheet_id "
             "LEFT JOIN answers a ON a.submission_id = s.id "
-            "WHERE s.student_id = ? AND s.status IN ('graded', 'approved') "
+            f"WHERE s.student_id = ? AND s.status IN ({marks}) "
             "ORDER BY s.id, CAST(a.question_no AS INTEGER)",
+            (student_id, *statuses),
+        ))
+
+
+def student_submissions(student_id: int, statuses: tuple[str, ...]) -> list[dict]:
+    """One student's checked worksheets (newest first), without answers."""
+    marks = ", ".join("?" for _ in statuses)
+    with connect() as conn:
+        return _rows(conn.execute(
+            "SELECT s.id, s.worksheet_id, w.title, w.subject, s.score_correct, s.score_total, "
+            "s.created_at FROM submissions s JOIN worksheets w ON w.id = s.worksheet_id "
+            f"WHERE s.student_id = ? AND s.status IN ({marks}) ORDER BY s.id DESC",
+            (student_id, *statuses),
+        ))
+
+
+def student_practice(student_id: int) -> list[dict]:
+    """Approved practice sheets for one student, newest first."""
+    with connect() as conn:
+        return _rows(conn.execute(
+            "SELECT p.id, p.worksheet_id, w.title, p.content, p.created_at "
+            "FROM practice_sheets p JOIN worksheets w ON w.id = p.worksheet_id "
+            "WHERE p.student_id = ? AND p.status = 'approved' ORDER BY p.id DESC",
             (student_id,),
         ))
 
