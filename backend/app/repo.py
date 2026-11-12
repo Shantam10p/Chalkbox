@@ -31,7 +31,10 @@ def _row(row) -> dict | None:
 
 
 def _rows(rows) -> list[dict]:
-    return [_row(r) for r in rows]
+    # Read every row first so the query is finished before any conversion runs. If a
+    # conversion fails, an unfinished query would otherwise keep the database locked.
+    fetched = rows.fetchall() if hasattr(rows, "fetchall") else list(rows)
+    return [_row(r) for r in fetched]
 
 
 def _update(table: str, row_id: int, fields: dict) -> None:
@@ -403,3 +406,57 @@ def list_reports(class_id: int) -> list[dict]:
             "JOIN students st ON st.id = r.student_id WHERE r.class_id = ? ORDER BY r.id DESC",
             (class_id,),
         ))
+
+
+# ---------------------------------------------------------------- student AI helper
+
+def add_helper_message(student_id: int, role: str, content: str,
+                       on_topic: bool = True, flagged: bool = False) -> int:
+    with connect() as conn:
+        return conn.execute(
+            "INSERT INTO helper_messages (student_id, role, content, on_topic, flagged) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (student_id, role, content, int(on_topic), int(flagged)),
+        ).lastrowid
+
+
+def helper_messages(student_id: int, limit: int = 100) -> list[dict]:
+    """The most recent messages for one student, oldest first."""
+    with connect() as conn:
+        # Plain dicts: here `content` is chat text, not JSON like in other tables.
+        rows = [dict(r) for r in conn.execute(
+            "SELECT id, role, content, on_topic, flagged, created_at FROM helper_messages "
+            "WHERE student_id = ? ORDER BY id DESC LIMIT ?",
+            (student_id, limit),
+        ).fetchall()]
+    for row in rows:
+        row["on_topic"], row["flagged"] = bool(row["on_topic"]), bool(row["flagged"])
+    return list(reversed(rows))
+
+
+def helper_messages_since(student_id: int, minutes: int) -> int:
+    """How many questions the student asked in the last `minutes` (for rate limiting)."""
+    with connect() as conn:
+        return conn.execute(
+            "SELECT COUNT(*) AS n FROM helper_messages WHERE student_id = ? AND role = 'student' "
+            "AND created_at > datetime('now', ?)",
+            (student_id, f"-{int(minutes)} minutes"),
+        ).fetchone()["n"]
+
+
+def class_topics(class_id: int) -> list[str]:
+    """Every topic the class has worked on (worksheets and lesson plans), newest first."""
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT subject, topic, title, id FROM worksheets WHERE class_id = :c "
+            "UNION ALL SELECT subject, topic, topic, id FROM lessons WHERE class_id = :c "
+            "ORDER BY id DESC",
+            {"c": class_id},
+        ).fetchall()
+    seen, topics = set(), []
+    for row in rows:
+        label = f"{row['subject']}: {row['topic']}"
+        if label.lower() not in seen:
+            seen.add(label.lower())
+            topics.append(label)
+    return topics

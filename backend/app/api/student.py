@@ -1,15 +1,52 @@
 """What a signed-in student can see: only their own work, and only after the teacher approved it."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
 
-from app import analysis, repo
+from app import analysis, helper, repo
 from app.api.common import found
 from app.auth import require_student
 from app.config import settings
 from app.misconceptions import with_defaults
 
 router = APIRouter(prefix="/me", tags=["student"])
+log = logging.getLogger("chalkbox.helper")
+
+
+class HelperIn(BaseModel):
+    message: str = Field(min_length=1, max_length=helper.MAX_MESSAGE_CHARS)
+
+
+@router.get("/helper")
+def helper_history(user: dict = Depends(require_student)):
+    return [
+        {k: m[k] for k in ("id", "role", "content", "created_at")}
+        for m in repo.helper_messages(user["student_id"], limit=50)
+    ]
+
+
+@router.post("/helper")
+def ask_helper(body: HelperIn, user: dict = Depends(require_student)):
+    """Ask the course helper a question. Hints only; off-topic questions are declined."""
+    message = body.message.strip()
+    if not message:
+        raise HTTPException(status_code=422, detail="Type a question first")
+    if repo.helper_messages_since(user["student_id"], 60) >= helper.MESSAGES_PER_HOUR:
+        raise HTTPException(status_code=429, detail="That's a lot of questions! Take a break and try again later.")
+
+    try:
+        answer = helper.reply(user["student_id"], message)
+    except Exception as error:
+        log.exception("Helper failed for student %s", user["student_id"])
+        raise HTTPException(status_code=503, detail="The helper is busy right now. Try again in a moment.") from error
+
+    repo.add_helper_message(user["student_id"], "student", message,
+                            on_topic=answer["on_topic"], flagged=answer["flagged"])
+    message_id = repo.add_helper_message(user["student_id"], "helper", answer["reply"])
+    return {"id": message_id, "role": "helper", "content": answer["reply"]}
 
 
 def _own_approved_submission(submission_id: int, user: dict) -> dict:

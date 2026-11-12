@@ -19,6 +19,7 @@ import StudentProfile from './screens/StudentProfile.jsx'
 import SubmissionDetail from './screens/SubmissionDetail.jsx'
 import WorksheetCheck from './screens/WorksheetCheck.jsx'
 import WorksheetSummary from './screens/WorksheetSummary.jsx'
+import StudentAsk from './student/StudentAsk.jsx'
 import { StudentHome, StudentPractice, StudentProgress, StudentWork } from './student/StudentScreens.jsx'
 
 function Shell({ tabs }) {
@@ -76,6 +77,7 @@ function StudentApp() {
       <Route element={<Shell tabs={STUDENT_TABS} />}>
         <Route index element={<StudentHome />} />
         <Route path="work/:submissionId" element={<StudentWork />} />
+        <Route path="ask" element={<StudentAsk />} />
         <Route path="practice" element={<StudentPractice />} />
         <Route path="progress" element={<StudentProgress />} />
         <Route path="*" element={<NotFound />} />

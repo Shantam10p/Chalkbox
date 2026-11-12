@@ -37,3 +37,10 @@ def add_student(class_id: int, body: StudentIn):
 @router.get("/students/{student_id}/profile")
 def student_profile(student_id: int):
     return found(analysis.student_profile(student_id), "Student")
+
+
+@router.get("/students/{student_id}/helper")
+def student_helper_chats(student_id: int):
+    """The teacher's view of a student's helper conversations, including flagged messages."""
+    found(repo.get_student(student_id), "Student")
+    return repo.helper_messages(student_id, limit=200)

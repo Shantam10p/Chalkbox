@@ -336,6 +336,28 @@ details.disclosure[open] > summary .chev { transform: rotate(90deg); }
 
 .practice-list { margin: 0; padding-left: 22px; display: grid; gap: 12px; }
 
+/* ---------------------------------------------------------------- student helper chat */
+
+.chat-page { padding-bottom: 96px; }
+.chat-log { display: grid; gap: 10px; align-content: start; }
+.bubble { max-width: 85%; padding: 10px 14px; border-radius: 16px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bubble.mine { justify-self: end; background: var(--primary); color: var(--primary-fg); border-bottom-right-radius: 4px; }
+.bubble.theirs { justify-self: start; background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.bubble.typing { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); }
+.bubble.flagged { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.bubble.declined { opacity: 0.7; }
+.bubble-meta { font-size: 0.72rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.bubble-meta.mine { justify-self: end; }
+
+.composer {
+  position: fixed; left: 0; right: 0; z-index: 15;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  background: var(--bg); border-top: 1px solid var(--border); padding: 10px 16px;
+}
+.composer-inner { max-width: 720px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
+.composer-input { resize: none; min-height: 46px; max-height: 120px; padding: 11px 14px; }
+.send-btn { background: var(--primary); color: var(--primary-fg); border-radius: 12px; width: 46px; height: 46px; }
+.send-btn:disabled { background: var(--surface-2); color: var(--muted); }
 
 /* ---------------------------------------------------------------- print pages */
 

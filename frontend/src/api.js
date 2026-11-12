@@ -41,6 +41,9 @@ export const api = {
   myWorkImageUrl: (id) => `/api/me/work/${id}/image`,
   myPractice: () => get('/me/practice'),
   myProgress: () => get('/me/progress'),
+  helperHistory: () => get('/me/helper'),
+  askHelper: (message) => post('/me/helper', { message }),
+  studentHelperChats: (studentId) => get(`/students/${studentId}/helper`),
 
   // Classes and students
   classes: () => get('/classes'),

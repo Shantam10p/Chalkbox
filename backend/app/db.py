@@ -120,6 +120,18 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- The student AI helper. Teachers can read every conversation.
+CREATE TABLE IF NOT EXISTS helper_messages (
+    id           INTEGER PRIMARY KEY,
+    student_id   INTEGER NOT NULL REFERENCES students(id),
+    role         TEXT NOT NULL CHECK (role IN ('student', 'helper')),
+    content      TEXT NOT NULL,
+    on_topic     INTEGER NOT NULL DEFAULT 1,   -- 0 if the helper declined an off-topic question
+    flagged      INTEGER NOT NULL DEFAULT 0,   -- 1 if the teacher should look (student may need help)
+    created_at   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_helper_student ON helper_messages(student_id, id);
 CREATE INDEX IF NOT EXISTS idx_students_class ON students(class_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_worksheet ON submissions(worksheet_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_student ON submissions(student_id);

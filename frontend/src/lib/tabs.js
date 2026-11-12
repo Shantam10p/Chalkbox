@@ -10,6 +10,7 @@ export const TEACHER_TABS = [
 
 export const STUDENT_TABS = [
   { to: '/', label: 'My work', icon: 'home', end: true },
+  { to: '/ask', label: 'Ask', icon: 'chat' },
   { to: '/practice', label: 'Practice', icon: 'book' },
   { to: '/progress', label: 'Progress', icon: 'chart' },
 ]

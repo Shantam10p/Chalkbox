@@ -7,6 +7,45 @@ import { ActionBar, AppBar, Avatar, EmptyState, ErrorState, Loading, Page, Spinn
 import { percent, shortDate } from '../lib/format.js'
 import { useAction, useLoad } from '../lib/hooks.js'
 
+// What the student has asked the ChalkBox helper. Flagged messages need the teacher's attention.
+function HelperChats({ studentId }) {
+  const { data: messages, error } = useLoad(() => api.studentHelperChats(studentId), studentId)
+  if (error) return <ErrorState message={error} />
+  if (!messages?.length) return null
+
+  const flagged = messages.filter((m) => m.flagged).length
+  const asked = messages.filter((m) => m.role === 'student').length
+  return (
+    <details className="card disclosure" open={flagged > 0}>
+      <summary>
+        <span className="row">
+          <Icon name="chat" />
+          <span>Helper chats</span>
+          <span className="tiny muted">{asked} question{asked === 1 ? '' : 's'}</span>
+          {flagged > 0 && <span className="badge bad"><Icon name="flag" size={14} /> {flagged} needs you</span>}
+        </span>
+        <Icon name="chevron" size={18} className="chev" />
+      </summary>
+      <div className="chat-log" style={{ marginTop: 12 }}>
+        {messages.map((m) => (
+          <div key={m.id} className="stack" style={{ gap: 2 }}>
+            <div
+              className={`bubble ${m.role === 'student' ? 'mine' : 'theirs'}${m.flagged ? ' flagged' : ''}${!m.on_topic && m.role === 'student' ? ' declined' : ''}`}
+            >
+              {m.content}
+            </div>
+            {m.role === 'student' && (m.flagged || !m.on_topic) && (
+              <span className="bubble-meta mine">
+                {m.flagged ? <><Icon name="flag" size={12} /> Flagged: please check in with the student</> : 'Off-topic, declined'}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </details>
+  )
+}
+
 const TREND = {
   improving: { label: 'Improving', tone: 'ok' },
   slipping: { label: 'Slipping', tone: 'bad' },
@@ -93,6 +132,8 @@ export default function StudentProfile() {
             </ul>
           </>
         )}
+
+        <HelperChats studentId={studentId} />
       </Page>
       {history.length > 0 && (
         <ActionBar>
