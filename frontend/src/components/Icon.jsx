@@ -31,7 +31,7 @@ const PATHS = {
   book: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z M4 21V5 M8 7h7',
 }
 
-export default function Icon({ name, size = 22, strokeWidth = 2, className, title }) {
+export default function Icon({ name, size = 22, strokeWidth = 1.8, className, title }) {
   return (
     <svg
       width={size}

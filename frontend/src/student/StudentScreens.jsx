@@ -5,7 +5,7 @@ import { useAuth } from '../components/AuthContext.jsx'
 import Icon from '../components/Icon.jsx'
 import SignOutButton from '../components/SignOutButton.jsx'
 import {
-  AppBar, Avatar, EmptyState, ErrorState, ListLink, Loading, Page, ScoreRing, Skeleton, Stat,
+  AppBar, Avatar, EmptyState, ErrorState, Greeting, ListLink, Loading, Page, ScoreRing, Skeleton, Stat,
 } from '../components/ui.jsx'
 import { percent, shortDate } from '../lib/format.js'
 import { useLoad } from '../lib/hooks.js'
@@ -28,15 +28,10 @@ export function StudentHome() {
     <>
       <AppBar title={<span className="brand">ChalkBox</span>} actions={<SignOutButton />} />
       <Page>
-        <section className="hero">
-          <Icon name="wifiOff" size={20} title="Works without internet" />
-          <h2>Hi, {user.display_name}!</h2>
-          <p>
-            {overview.data
-              ? `${overview.data.class.name} · ${overview.data.class.teacher}'s class`
-              : 'Loading…'}
-          </p>
-        </section>
+        <Greeting
+          title={`Hi, ${user.display_name}`}
+          meta={overview.data ? `${overview.data.class.name} · ${overview.data.class.teacher}'s class` : 'Loading…'}
+        />
 
         <h2 className="section-title">My checked work</h2>
         {work.error ? (

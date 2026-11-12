@@ -3,7 +3,7 @@ import { api } from '../api.js'
 import { useClass } from '../components/ClassContext.jsx'
 import Icon from '../components/Icon.jsx'
 import SignOutButton from '../components/SignOutButton.jsx'
-import { AppBar, ErrorState, ListLink, Page, Skeleton, StatusBadge } from '../components/ui.jsx'
+import { AppBar, ErrorState, Greeting, ListLink, Page, Skeleton, StatusBadge } from '../components/ui.jsx'
 import { isBusy, needsTeacher } from '../lib/format.js'
 import { useLoad, usePolling } from '../lib/hooks.js'
 
@@ -74,11 +74,10 @@ export default function Home() {
       <Page>
         {classError && <ErrorState message={`Can't reach the ChalkBox hub: ${classError}`} />}
 
-        <section className="hero">
-          <Icon name="wifiOff" size={20} title="Works without internet" />
-          <h2>Hello, {teacher}</h2>
-          <p>{current ? `${current.name} · ${current.students.length} students` : 'Loading your class…'}</p>
-        </section>
+        <Greeting
+          title={`Hello, ${teacher}`}
+          meta={current ? `${current.name} · ${current.students.length} students` : 'Loading your class…'}
+        />
 
         <div className="grid-2">
           <Link to="/plan/new" className="big-action" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>

@@ -44,7 +44,7 @@ export default function PlanList() {
           )
         }
       />
-      <Page>
+      <Page roomy>
         {!editing && (
           <Link to="/plan/new" className="btn primary block">
             <Icon name="plus" /> New lesson

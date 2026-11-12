@@ -11,7 +11,7 @@ export default function CheckHome() {
   return (
     <>
       <AppBar title="Check work" subtitle="Pick the worksheet the class did" />
-      <Page>
+      <Page roomy>
         {!current ? (
           <Skeleton />
         ) : worksheets.length === 0 ? (

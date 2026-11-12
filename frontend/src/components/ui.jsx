@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Icon from './Icon.jsx'
 import { STATUS, initials } from '../lib/format.js'
@@ -27,8 +28,29 @@ export function AppBar({ title, subtitle, back, actions }) {
   )
 }
 
-export function Page({ children, hasAction = false }) {
-  return <main className={`page${hasAction ? ' has-action' : ''}`}>{children}</main>
+// The home-screen greeting: plain typography on the page (date, headline, one meta line).
+export function Greeting({ title, meta }) {
+  const [now] = useState(() => new Date()) // read once, so the date stays stable across re-renders
+  return (
+    <section className="greeting" aria-label="Greeting">
+      <div className="greeting-top">
+        <time dateTime={now.toISOString().slice(0, 10)}>
+          {now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}
+        </time>
+        <span className="offline-pill" title="Runs on your school's ChalkBox. No internet needed.">
+          <Icon name="wifiOff" size={13} /> Offline
+        </span>
+      </div>
+      <h2>{title}</h2>
+      {meta && <p>{meta}</p>}
+    </section>
+  )
+}
+
+// `roomy`: extra space below the top bar (used on the Plan and Check lists).
+export function Page({ children, hasAction = false, roomy = false }) {
+  const classes = ['page', hasAction && 'has-action', roomy && 'roomy'].filter(Boolean).join(' ')
+  return <main className={classes}>{children}</main>
 }
 
 export function ActionBar({ children }) {
