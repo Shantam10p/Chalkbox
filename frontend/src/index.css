@@ -188,6 +188,8 @@ p { margin: 0; }
   border: 0; background: transparent; color: var(--fg); cursor: pointer; flex: none;
 }
 .icon-btn:active { background: var(--surface-2); }
+.icon-btn.danger-icon { color: var(--bad); }
+.icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .big-action {
   display: flex; align-items: center; gap: 14px; padding: 16px;

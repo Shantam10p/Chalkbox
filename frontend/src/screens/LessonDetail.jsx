@@ -7,6 +7,7 @@ import { useToast } from '../components/Toast.jsx'
 import { ActionBar, AppBar, ErrorState, Loading, Notice, Page, Spinner, StatusBadge } from '../components/ui.jsx'
 import { asList, isBusy } from '../lib/format.js'
 import { useAction, useLoad, usePolling } from '../lib/hooks.js'
+import { canDeleteLesson, confirmAndDeleteLesson } from '../lib/lessons.js'
 
 function Part({ number, title, minutes, fix = false, children }) {
   return (
@@ -72,7 +73,7 @@ export default function LessonDetail() {
   const { lessonId } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
-  const { refresh } = useClass()
+  const { current, refresh } = useClass()
   const { data: lesson, error, reload } = useLoad(() => api.lesson(lessonId), lessonId)
   usePolling(reload, isBusy(lesson?.status), 4000)
 
@@ -91,6 +92,18 @@ export default function LessonDetail() {
     try {
       await api.retryLesson(lessonId)
       await reload()
+    } catch (e) {
+      toast(e.message, 'error')
+    }
+  })
+
+  const [remove, removing] = useAction(async () => {
+    try {
+      if (await confirmAndDeleteLesson(lesson, current?.worksheets)) {
+        toast('Plan deleted')
+        await refresh()
+        navigate('/plan', { replace: true })
+      }
     } catch (e) {
       toast(e.message, 'error')
     }
@@ -138,6 +151,12 @@ export default function LessonDetail() {
             )}
             <QuestionList questions={content.worksheet.questions} />
           </>
+        )}
+
+        {canDeleteLesson(lesson) && (
+          <button type="button" className="btn danger block" onClick={remove} disabled={removing}>
+            {removing ? <Spinner /> : <Icon name="trash" />} Delete plan
+          </button>
         )}
       </Page>
 

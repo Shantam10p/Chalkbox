@@ -58,3 +58,14 @@ def retry_lesson(lesson_id: int):
     repo.update_lesson(lesson_id, status="queued", error=None)
     jobs.submit(jobs.run_lesson, lesson_id)
     return {"status": "queued"}
+
+
+@router.delete("/lessons/{lesson_id}")
+def delete_lesson(lesson_id: int):
+    """Deletes a lesson plan (not while it is still being written).
+
+    Its worksheet is deleted too, unless student work was already checked on it.
+    """
+    lesson = found(repo.get_lesson(lesson_id), "Lesson")
+    require_status(lesson, {"ready", "approved", "error"}, "delete")
+    return repo.delete_lesson(lesson_id)

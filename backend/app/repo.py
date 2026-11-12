@@ -306,6 +306,30 @@ def list_lessons(class_id: int) -> list[dict]:
         ))
 
 
+def delete_lesson(lesson_id: int) -> dict:
+    """Deletes a lesson plan. Its worksheet goes too, unless students' work was already
+    checked on it: then the worksheet and all results are kept and only the plan is removed."""
+    with connect() as conn:
+        row = conn.execute("SELECT worksheet_id FROM lessons WHERE id = ?", (lesson_id,)).fetchone()
+        worksheet_id = row["worksheet_id"] if row else None
+        # Unlink first so neither row blocks the other's deletion.
+        conn.execute("UPDATE worksheets SET lesson_id = NULL WHERE lesson_id = ?", (lesson_id,))
+        conn.execute("DELETE FROM lessons WHERE id = ?", (lesson_id,))
+
+        worksheet_deleted = False
+        if worksheet_id is not None:
+            in_use = conn.execute(
+                "SELECT (SELECT COUNT(*) FROM submissions WHERE worksheet_id = :w) + "
+                "(SELECT COUNT(*) FROM practice_sheets WHERE worksheet_id = :w) AS n",
+                {"w": worksheet_id},
+            ).fetchone()["n"]
+            if not in_use:
+                conn.execute("DELETE FROM worksheets WHERE id = ?", (worksheet_id,))
+                worksheet_deleted = True
+    return {"deleted": lesson_id, "worksheet_deleted": worksheet_deleted,
+            "worksheet_kept": worksheet_id if worksheet_id and not worksheet_deleted else None}
+
+
 # ---------------------------------------------------------------- practice sheets and reports
 
 def create_practice(worksheet_id: int, student_id: int) -> int:
